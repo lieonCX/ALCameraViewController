@@ -97,26 +97,26 @@ internal class CropOverlay: UIView {
             corner[1].frame = horizontalFrame
         }
         
-        let lineThickness = lineWidth / UIScreen.main.scale
-        let padding = (bounds.height - (lineThickness * CGFloat(horizontalLines.count))) / CGFloat(horizontalLines.count + 1)
-        
-        for i in 0..<horizontalLines.count {
-            let hLine = horizontalLines[i]
-            let vLine = verticalLines[i]
-            
-            let spacing = (padding * CGFloat(i + 1)) + (lineThickness * CGFloat(i))
-            
-            hLine.frame = CGRect(x: 0, y: spacing, width: bounds.width, height:  lineThickness)
-            vLine.frame = CGRect(x: spacing, y: 0, width: lineThickness, height: bounds.height)
-        }
-        
+//        let lineThickness = lineWidth / UIScreen.main.scale
+//        let padding = (bounds.height - (lineThickness * CGFloat(horizontalLines.count))) / CGFloat(horizontalLines.count + 1)
+//        
+//        for i in 0..<horizontalLines.count {
+//            let hLine = horizontalLines[i]
+//            let vLine = verticalLines[i]
+//            
+//            let spacing = (padding * CGFloat(i + 1)) + (lineThickness * CGFloat(i))
+//            
+//            hLine.frame = CGRect(x: 0, y: spacing, width: bounds.width, height:  lineThickness)
+//            vLine.frame = CGRect(x: spacing, y: 0, width: lineThickness, height: bounds.height)
+//        }
+    
     }
     
     func createLines() {
         
         outerLines = [createLine(), createLine(), createLine(), createLine()]
-        horizontalLines = [createLine(), createLine()]
-        verticalLines = [createLine(), createLine()]
+//        horizontalLines = [createLine(), createLine()]
+//        verticalLines = [createLine(), createLine()]
         
         topLeftCornerLines = [createLine(), createLine()]
         topRightCornerLines = [createLine(), createLine()]

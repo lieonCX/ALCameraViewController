@@ -13,7 +13,7 @@ typealias VolumeChangeAction = (Float) -> Void
 
 public class VolumeControl {
     
-    let changeKey = "AVSystemController_SystemVolumeDidChangeNotification"
+//    let changeKey = "AVSystemController_SystemVolumeDidChangeNotification"
     
     lazy var volumeView: MPVolumeView = {
         let view = MPVolumeView()
@@ -31,7 +31,7 @@ public class VolumeControl {
         
         do {
             try AVAudioSession.sharedInstance().setActive(true)
-            NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged), name: NSNotification.Name(rawValue: changeKey), object: nil)
+//            NotificationCenter.default.addObserver(self, selector: #selector(volumeChanged), name: NSNotification.Name(rawValue: changeKey), object: nil)
         } catch {
         }
         
