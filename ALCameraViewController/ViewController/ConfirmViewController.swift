@@ -21,7 +21,7 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
     var allowsCropping: Bool = false
     var verticalPadding: CGFloat = 30
     var horizontalPadding: CGFloat = 30
-    
+    public var cropRatio: CGFloat?
     public var onComplete: CameraViewCompletion?
     
     var asset: PHAsset!

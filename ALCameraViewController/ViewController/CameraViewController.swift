@@ -40,6 +40,35 @@ public extension CameraViewController {
         
         return navigationController
     }
+    
+    public class func imagePickerViewController(croppingRatio: CGFloat, completion: @escaping CameraViewCompletion) -> UINavigationController {
+        let imagePicker = PhotoLibraryViewController()
+        let navigationController = UINavigationController(rootViewController: imagePicker)
+        
+        navigationController.navigationBar.barTintColor = UIColor.black
+        navigationController.navigationBar.barStyle = UIBarStyle.black
+        navigationController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+        
+        imagePicker.onSelectionComplete = { [weak imagePicker] asset in
+            if let asset = asset {
+                let confirmController = ConfirmViewController(asset: asset, allowsCropping: true)
+                confirmController.cropRatio = croppingRatio
+                confirmController.onComplete = { [weak imagePicker] image, asset in
+                    if let image = image, let asset = asset {
+                        completion(image, asset)
+                    } else {
+                        imagePicker?.dismiss(animated: true, completion: nil)
+                    }
+                }
+                confirmController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+                imagePicker?.present(confirmController, animated: true, completion: nil)
+            } else {
+                completion(nil, nil)
+            }
+        }
+        
+        return navigationController
+    }
 }
 
 public class CameraViewController: UIViewController {
@@ -47,6 +76,8 @@ public class CameraViewController: UIViewController {
     var didUpdateViews = false
     var allowCropping = false
     var animationRunning = false
+    
+      var cropRatio: CGFloat?
     
     var lastInterfaceOrientation : UIInterfaceOrientation?
     var onCompletion: CameraViewCompletion?
@@ -164,6 +195,19 @@ public class CameraViewController: UIViewController {
         libraryButton.isHidden = !allowsLibraryAccess
     }
   
+    public init(croppingRatio: CGFloat, allowsLibraryAccess: Bool = true, completion: @escaping CameraViewCompletion) {
+        super.init(nibName: nil, bundle: nil)
+        onCompletion = completion
+        cropRatio = croppingRatio
+        allowCropping = true
+        cameraOverlay.isHidden = true//hidden here because we only want crop image in confirm view
+        libraryButton.isEnabled = allowsLibraryAccess
+        libraryButton.isHidden = !allowsLibraryAccess
+        
+        flashButton.isHidden = true
+        swapButton.isHidden = true
+    }
+    
     required public init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -502,22 +546,32 @@ public class CameraViewController: UIViewController {
     }
     
     internal func showLibrary() {
-        let imagePicker = CameraViewController.imagePickerViewController(croppingEnabled: allowCropping) { image, asset in
-
-            defer {
+        if let ratio = cropRatio {
+            let imagePicker = CameraViewController.imagePickerViewController(croppingRatio: ratio, completion: { (image, asset) in
+                defer {
+                    self.dismiss(animated: true, completion: nil)
+                }
+                guard let image = image, let asset = asset else {
+                    return
+                }
+                self.onCompletion?(image, asset)
+            })
+        present(imagePicker, animated: true) {
+                self.cameraView.stopSession()
+            }
+        } else {
+            let imagePicker = CameraViewController.imagePickerViewController(croppingEnabled: allowCropping, completion: { (image, asset) in
                 self.dismiss(animated: true, completion: nil)
-            }
-
-            guard let image = image, let asset = asset else {
-                return
-            }
-            
-            self.onCompletion?(image, asset)
+                guard let image = image, let asset = asset else {
+                    return
+                }
+                self.onCompletion?(image, asset)
+            })
+            present(imagePicker, animated: true, completion: { 
+                self.cameraView.stopSession()
+            })
         }
         
-        present(imagePicker, animated: true) {
-            self.cameraView.stopSession()
-        }
     }
     
     internal func toggleFlash() {
