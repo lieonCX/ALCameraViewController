@@ -286,7 +286,12 @@ public class CameraViewController: UIViewController {
         removeCameraOverlayEdgesConstraints()
         configCameraOverlayEdgeOneContraint(portrait, padding: padding)
         configCameraOverlayEdgeTwoConstraint(portrait, padding: padding)
-        configCameraOverlayWidthConstraint(portrait)
+        if let ratio = cropRatio {
+            configCameraOverlayAspectRatioWidthConstraint(portrait, ratio: ratio)
+            
+        } else {
+            configCameraOverlayWidthConstraint(portrait)
+        }
         configCameraOverlayCenterConstraint(portrait)
         
         rotate(actualInterfaceOrientation: statusBarOrientation)
@@ -556,7 +561,7 @@ public class CameraViewController: UIViewController {
                 }
                 self.onCompletion?(image, asset)
             })
-        present(imagePicker, animated: true) {
+          present(imagePicker, animated: true) {
                 self.cameraView.stopSession()
             }
         } else {
@@ -601,6 +606,7 @@ public class CameraViewController: UIViewController {
     
     private func startConfirmController(asset: PHAsset) {
         let confirmViewController = ConfirmViewController(asset: asset, allowsCropping: allowCropping)
+        confirmViewController.cropRatio = cropRatio
         confirmViewController.onComplete = { image, asset in
             if let image = image, let asset = asset {
                 self.onCompletion?(image, asset)

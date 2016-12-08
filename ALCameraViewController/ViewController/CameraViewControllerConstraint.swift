@@ -459,6 +459,19 @@ extension CameraViewController {
         view.addConstraint(cameraOverlayWidthConstraint!)
     }
     
+    func configCameraOverlayAspectRatioWidthConstraint(_ portrait: Bool, ratio: CGFloat) {
+        view.autoRemoveConstraint(cameraOverlayWidthConstraint)
+        cameraOverlayWidthConstraint = NSLayoutConstraint(
+            item: cameraOverlay,
+            attribute: portrait ? .height : .width,
+            relatedBy: .equal,
+            toItem: cameraOverlay,
+            attribute: portrait ? .width : .height,
+            multiplier: ratio,
+            constant: 0)
+        view.addConstraint(cameraOverlayWidthConstraint!)
+    }
+    
     /**
      * This method will center the relative position of
      * CameraOverlay, based on the biggest size of the

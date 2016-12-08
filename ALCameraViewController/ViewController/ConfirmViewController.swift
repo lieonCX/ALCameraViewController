@@ -13,6 +13,8 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
     
     let imageView = UIImageView()
     @IBOutlet weak var scrollView: UIScrollView!
+    
+    @IBOutlet weak var cropOverlayWidthRatioConstraint: NSLayoutConstraint!
     @IBOutlet weak var cropOverlay: CropOverlay!
     @IBOutlet weak var cancelButton: UIButton!
     @IBOutlet weak var confirmButton: UIButton!
@@ -78,7 +80,12 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
     }
     
     public override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
+        
+        if let ratio = cropRatio {
+            let width = (view.bounds.width - 15.0 * 2)
+            let height = floor(width * ratio)
+            cropOverlayWidthRatioConstraint.constant = width - height
+        }
         let scale = calculateMinimumScale(view.frame.size)
         let frame = allowsCropping ? cropOverlay.frame : view.bounds
 
@@ -87,6 +94,7 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
         scrollView.zoomScale = scale
         centerScrollViewContents()
         centerImageViewOnRotate()
+        super.viewWillLayoutSubviews()
     }
     
     public override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {

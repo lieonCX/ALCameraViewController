@@ -6,7 +6,9 @@
 //  Copyright © 2016 zero. All rights reserved.
 //
 
+#ifdef __OBJC__
 #import <UIKit/UIKit.h>
+#endif
 
 //! Project version number for CameraViewController.
 FOUNDATION_EXPORT double CameraViewControllerVersionNumber;
