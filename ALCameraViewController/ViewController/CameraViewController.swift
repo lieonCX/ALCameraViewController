@@ -13,6 +13,8 @@ import Photos
 public typealias CameraViewCompletion = (UIImage?, PHAsset?) -> Void
 
 public extension CameraViewController {
+
+    
     public class func imagePickerViewController(croppingEnabled: Bool, completion: @escaping CameraViewCompletion) -> UINavigationController {
         let imagePicker = PhotoLibraryViewController()
         let navigationController = UINavigationController(rootViewController: imagePicker)
@@ -24,6 +26,36 @@ public extension CameraViewController {
         imagePicker.onSelectionComplete = { [weak imagePicker] asset in
             if let asset = asset {
                 let confirmController = ConfirmViewController(asset: asset, allowsCropping: croppingEnabled)
+                confirmController.onComplete = { [weak imagePicker] image, asset in
+                    if let image = image, let asset = asset {
+                        completion(image, asset)
+                    } else {
+                        imagePicker?.dismiss(animated: true, completion: nil)
+                    }
+                }
+                confirmController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+                imagePicker?.present(confirmController, animated: true, completion: nil)
+            } else {
+                completion(nil, nil)
+            }
+        }
+        
+        return navigationController
+    }
+    
+    public class func imagePickerViewController(croppingRatio: CGFloat, isCircleOverlayer: Bool, completion: @escaping CameraViewCompletion) -> UINavigationController {
+        let imagePicker = PhotoLibraryViewController()
+        let navigationController = UINavigationController(rootViewController: imagePicker)
+        
+        navigationController.navigationBar.barTintColor = UIColor.black
+        navigationController.navigationBar.barStyle = UIBarStyle.black
+        navigationController.modalTransitionStyle = UIModalTransitionStyle.crossDissolve
+        
+        imagePicker.onSelectionComplete = { [weak imagePicker] asset in
+            if let asset = asset {
+                let confirmController = ConfirmViewController(asset: asset, allowsCropping: true)
+                confirmController.isCirleOverlayer = isCircleOverlayer
+                confirmController.cropRatio = croppingRatio
                 confirmController.onComplete = { [weak imagePicker] image, asset in
                     if let image = image, let asset = asset {
                         completion(image, asset)
@@ -82,6 +114,7 @@ public class CameraViewController: UIViewController {
     var lastInterfaceOrientation : UIInterfaceOrientation?
     var onCompletion: CameraViewCompletion?
     var volumeControl: VolumeControl?
+    var isCircleOverlayer: Bool = false
     
     var animationDuration: TimeInterval = 0.5
     var animationSpring: CGFloat = 0.5
@@ -195,6 +228,19 @@ public class CameraViewController: UIViewController {
         libraryButton.isHidden = !allowsLibraryAccess
     }
   
+    public init(croppingRatio: CGFloat, isCirclelayer: Bool, allowsLibraryAccess: Bool = true, completion: @escaping CameraViewCompletion) {
+        super.init(nibName: nil, bundle: nil)
+        onCompletion = completion
+        cropRatio = croppingRatio
+        allowCropping = true
+        cameraOverlay.isHidden = true//hidden here because we only want crop image in confirm view
+        libraryButton.isEnabled = allowsLibraryAccess
+        libraryButton.isHidden = !allowsLibraryAccess
+        self.isCircleOverlayer = isCirclelayer
+        flashButton.isHidden = true
+        swapButton.isHidden = true
+    }
+    
     public init(croppingRatio: CGFloat, allowsLibraryAccess: Bool = true, completion: @escaping CameraViewCompletion) {
         super.init(nibName: nil, bundle: nil)
         onCompletion = completion
@@ -552,18 +598,35 @@ public class CameraViewController: UIViewController {
     
     internal func showLibrary() {
         if let ratio = cropRatio {
-            let imagePicker = CameraViewController.imagePickerViewController(croppingRatio: ratio, completion: { (image, asset) in
-                defer {
-                    self.dismiss(animated: true, completion: nil)
+            if isCircleOverlayer {
+                let imagePicker = CameraViewController.imagePickerViewController(croppingRatio: ratio, isCircleOverlayer: isCircleOverlayer, completion: {
+                    (image, asset) in
+                    defer {
+                        self.dismiss(animated: true, completion: nil)
+                    }
+                    guard let image = image, let asset = asset else {
+                        return
+                    }
+                    self.onCompletion?(image, asset)
+                })
+                present(imagePicker, animated: true) {
+                    self.cameraView.stopSession()
                 }
-                guard let image = image, let asset = asset else {
-                    return
+            } else {
+                let imagePicker = CameraViewController.imagePickerViewController(croppingRatio: ratio, completion: { (image, asset) in
+                    defer {
+                        self.dismiss(animated: true, completion: nil)
+                    }
+                    guard let image = image, let asset = asset else {
+                        return
+                    }
+                    self.onCompletion?(image, asset)
+                })
+                present(imagePicker, animated: true) {
+                    self.cameraView.stopSession()
                 }
-                self.onCompletion?(image, asset)
-            })
-          present(imagePicker, animated: true) {
-                self.cameraView.stopSession()
             }
+            
         } else {
             let imagePicker = CameraViewController.imagePickerViewController(croppingEnabled: allowCropping, completion: { (image, asset) in
                 self.dismiss(animated: true, completion: nil)
@@ -607,6 +670,7 @@ public class CameraViewController: UIViewController {
     private func startConfirmController(asset: PHAsset) {
         let confirmViewController = ConfirmViewController(asset: asset, allowsCropping: allowCropping)
         confirmViewController.cropRatio = cropRatio
+        confirmViewController.isCirleOverlayer = true
         confirmViewController.onComplete = { image, asset in
             if let image = image, let asset = asset {
                 self.onCompletion?(image, asset)

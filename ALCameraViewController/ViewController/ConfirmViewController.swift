@@ -27,6 +27,7 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
     public var onComplete: CameraViewCompletion?
     
     var asset: PHAsset!
+    var isCirleOverlayer: Bool = false
     
     public init(asset: PHAsset, allowsCropping: Bool) {
         self.allowsCropping = allowsCropping
@@ -134,15 +135,29 @@ public class ConfirmViewController: UIViewController, UIScrollViewDelegate {
     private func configureWithImage(_ image: UIImage) {
         if allowsCropping {
             cropOverlay.isHidden = false
+    
         } else {
             cropOverlay.isHidden = true
         }
-        
         buttonActions()
         
         imageView.image = image
         imageView.sizeToFit()
         view.setNeedsLayout()
+        if allowsCropping && isCirleOverlayer {
+            addCircleView()
+        }
+    }
+    
+    private func addCircleView() {
+        cropOverlay.isHidden = false
+        cropOverlay.setClearSubViews()
+        let padding: CGFloat = 15
+        let roundWidth = (cropOverlay.bounds.width - padding * 2)
+        let roundY = (cropOverlay.frame.origin.y + padding) * (cropRatio ?? 1.0)
+        let roundX = view.center.x - roundWidth * 0.5
+        let cover = CoverView(roundFrame: CGRect(x: roundX, y: roundY, width: roundWidth, height: roundWidth))
+        view.insertSubview(cover, belowSubview: confirmButton)
     }
     
     private func calculateMinimumScale(_ size: CGSize) -> CGFloat {

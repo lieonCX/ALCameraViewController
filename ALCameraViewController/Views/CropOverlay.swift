@@ -95,6 +95,7 @@ internal class CropOverlay: UIView {
             
             corner[0].frame = verticalFrame
             corner[1].frame = horizontalFrame
+          
         }
         
 //        let lineThickness = lineWidth / UIScreen.main.scale
@@ -109,7 +110,6 @@ internal class CropOverlay: UIView {
 //            hLine.frame = CGRect(x: 0, y: spacing, width: bounds.width, height:  lineThickness)
 //            vLine.frame = CGRect(x: spacing, y: 0, width: lineThickness, height: bounds.height)
 //        }
-    
     }
     
     func createLines() {
@@ -131,5 +131,41 @@ internal class CropOverlay: UIView {
         line.backgroundColor = UIColor.white
         addSubview(line)
         return line
+    }
+    
+    func setClearSubViews() {
+        outerLines.forEach { $0.removeFromSuperview()}
+        topLeftCornerLines.forEach { $0.removeFromSuperview()}
+        topRightCornerLines .forEach { $0.removeFromSuperview()}
+        bottomLeftCornerLines.forEach { $0.removeFromSuperview()}
+        bottomRightCornerLines.forEach { $0.removeFromSuperview()}
+        
+    }
+}
+
+internal class CoverView: UIView {
+    var roundX: CGFloat = 0
+    var roundY: CGFloat = 0
+    var roundWidth: CGFloat = 0
+    
+    convenience init(roundFrame: CGRect) {
+        self.init(frame: CGRect(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height))
+        self.isOpaque = false
+        self.roundX = roundFrame.origin.x
+        self.roundY = roundFrame.origin.y
+        self.roundWidth = roundFrame.width
+        isUserInteractionEnabled = false
+    }
+    
+    override func draw(_ rect: CGRect) {
+        let context = UIGraphicsGetCurrentContext()
+        context?.setFillColor(UIColor(red: 0, green: 0, blue: 0, alpha: 0.5).cgColor)
+        context?.fill(rect)
+        let roundRect = CGRect(x: roundX, y: roundY, width: roundWidth, height: roundWidth)
+        if roundRect.intersects(rect) {
+            context?.setBlendMode(CGBlendMode.clear)
+            UIColor.clear.set()
+            context?.fillEllipse(in: roundRect)
+        }
     }
 }
